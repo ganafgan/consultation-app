@@ -1,0 +1,2 @@
+primary color = #1280fe
+other color = #4f9ef7
