@@ -1,40 +1,85 @@
 import React from 'react'
-import { StyleSheet, Text, View, Image } from 'react-native'
-import { colors, fonts } from '../../utils'
+import { Image, ScrollView, StyleSheet, Text, View } from 'react-native'
+import LinearGradient from 'react-native-linear-gradient'
+import { useDispatch } from 'react-redux'
 import { ILLogin } from '../../assets'
 import { Button, Gap, Input, Link } from '../../components'
-import LinearGradient from 'react-native-linear-gradient';
+import { Fire } from '../../config'
+import { colors, fonts, showError, storeData, useForm } from '../../utils'
 
 const Login = (props) => {
+
+    const [form, setForm] = useForm({
+        email: '',
+        password: ''
+    })
+    const dispatch = useDispatch()
+
+    const onLogin = () => {
+        dispatch({type: 'SET_LOADING', value: true})
+        Fire.auth()
+        .signInWithEmailAndPassword(form.email, form.password)
+        .then((res)=>{
+            dispatch({type: 'SET_LOADING', value: false})
+            Fire.database()
+                .ref(`users/${res.user.uid}/`)
+                .once('value')
+                .then((res)=>{
+                    console.log(res.val())
+                    if(res.val()){
+                        storeData('user', res.val())
+                        props.navigation.replace('MainApp')
+                    }
+                    
+                })
+        })
+        .catch((err)=>{
+            dispatch({type: 'SET_LOADING', value: false})
+            showError(err.message)
+        })
+    }
+
     return (
         <View style={styles.container}>
-            <LinearGradient start={{x: 0, y: 0}} end={{x: 1, y: 0}} colors={['#1280fe', '#00d4ff']} style={styles.page}>
-                <Image source={ILLogin} style={styles.img}/>
-                <Gap height={20} />
-            </LinearGradient>
-            <View style={styles.login}>
-                <Gap height={40} />
-                <Text style={styles.title}>Hai,</Text>
-                <Text style={styles.title}>Selamat datang</Text>
-                <Gap height={20} />
-                <Input label='Email' placeholder='Input Email' />
-                <Gap height={20} />
-                <Input label='Password' />
-                <Gap height={10} />
-                <Link title='Forget Password' size={12} />
-                <Gap height={50} />
-                <Button title='Sign In' onPress={() => props.navigation.navigate('MainApp')}/>
-                <Gap height={20} />
-                <View style={styles.register}>
-                    <Text style={{fontFamily: fonts.primary[600]}}>Don't have an account ? </Text>
-                    <Link title='Sign Up' 
-                        size={14} under='blue' 
-                        color='blue'
-                        onPress={()=> props.navigation.navigate('Register')}
+            <ScrollView showsVerticalScrollIndicator={false}>
+                <LinearGradient start={{x: 0, y: 0}} end={{x: 1, y: 0}} colors={['#1280fe', '#00d4ff']} style={styles.page}>
+                    <Image source={ILLogin} style={styles.img}/>
+                    <Gap height={20} />
+                </LinearGradient>
+                <View style={styles.login}>
+                    <Gap height={40} />
+                    <Text style={styles.title}>Hai,</Text>
+                    <Text style={styles.title}>Selamat datang</Text>
+                    <Gap height={20} />
+                    <Input 
+                        label='Email' 
+                        value={form.email}
+                        onChangeText={(value) => setForm('email', value)}
                     />
+                    <Gap height={20} />
+                    <Input 
+                        label='Password' 
+                        value={form.password}
+                        onChangeText={(value) => setForm('password', value)}
+                        secureTextEntry
+                    />
+                    <Gap height={10} />
+                    <Link title='Forget Password' size={12} />
+                    <Gap height={50} />
+                    <Button title='Sign In' onPress={onLogin}/>
+                    <Gap height={20} />
+                    <View style={styles.register}>
+                        <Text style={{fontFamily: fonts.primary.normal}}>Don't have an account ? </Text>
+                        <Link title='Sign Up' 
+                            size={14} under='blue' 
+                            color='blue'
+                            onPress={()=> props.navigation.navigate('Register')}
+                        />
+                    </View>
                 </View>
-            </View>
+            </ScrollView>
         </View>
+        
     )
 }
 

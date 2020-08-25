@@ -1,17 +1,34 @@
-import React from 'react'
-import { StyleSheet, Text, View, Image } from 'react-native'
-import { DummyUser } from '../../../assets'
-import { fonts, colors } from '../../../utils'
+import React, { useEffect, useState } from 'react'
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { ILNullPhoto } from '../../../assets'
+import { colors, fonts, getData } from '../../../utils'
 
-const HomeProfile = () => {
+const HomeProfile = ({onPress}) => {
+
+    useEffect(()=>{
+        getData('user')
+        .then((res)=>{
+            console.log(res)
+            const data = res
+            data.photo = {uri: res.photo}
+            setProfile(res)
+        })
+    },[])
+
+    const [profile, setProfile] = useState({
+        photo: ILNullPhoto,
+        fullName: '',
+        profession: ''
+    })
+
     return (
-        <View style={styles.container}>
-            <Image source={DummyUser} style={styles.img} />
+        <TouchableOpacity style={styles.container} onPress={onPress}>
+            <Image source={profile.photo} style={styles.img} />
             <View>
-                <Text style={styles.name}>Lestari</Text>
-                <Text style={styles.profession}>Traveller and Blogger</Text>
+                <Text style={styles.name}>Hai, {profile.fullName}</Text>
+            <Text style={styles.profession}>{profile.profession}</Text>
             </View>
-        </View>
+        </TouchableOpacity>
     )
 }
 
@@ -30,11 +47,13 @@ const styles = StyleSheet.create({
     name: {
         fontSize: 18,
         fontFamily: fonts.primary[600],
-        color: colors.white
+        color: colors.white,
+        textTransform: 'capitalize'
     },
     profession: {
         fontSize: 14,
         fontFamily: fonts.primary[400],
-        color: colors.white
+        color: colors.white,
+        textTransform: 'capitalize'
     }
 })

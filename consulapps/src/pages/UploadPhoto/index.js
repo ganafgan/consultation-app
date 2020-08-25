@@ -1,26 +1,78 @@
-import React from 'react'
-import { StyleSheet, Text, View, Image } from 'react-native'
-import { Header, Button, Link, Gap } from '../../components'
-import { ILNullPhoto, IcAddPhoto } from '../../assets'
-import { colors, fonts } from '../../utils'
+import React, { useState } from 'react'
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import ImagePicker from 'react-native-image-picker'
+import { IcAddPhoto, IcRemovePhoto, ILNullPhoto } from '../../assets'
+import { Button, Gap, Header, Link } from '../../components'
+import { Fire } from '../../config'
+import { colors, fonts, showError, storeData } from '../../utils'
 
-const UploadPhoto = () => {
+const UploadPhoto = (props) => {
+
+    const {fullName, profession, uid} = props.route.params
+    const [hasPhoto, setHasPhoto] = useState(false)
+    const [photo, setPhoto] = useState(ILNullPhoto)
+    const [photoForDB, setPhotoForDB] = useState('')
+
+    const getImage = () => {
+
+        const options = {
+            title: 'Select Avatar',
+            quality: 0.5,
+            maxwidth: 200,
+            maxHeight: 200,
+            customButtons: [{ name: 'fb', title: 'Choose Photo from Facebook' }],
+            storageOptions: {
+              skipBackup: true,
+              path: 'images',
+            }
+          };
+
+        ImagePicker.showImagePicker(options, (response) => {
+            console.log('Response =', response)
+            if (response.didCancel) {
+                console.log('User cancelled image picker');
+              } else if (response.error) {
+                console.log('ImagePicker Error: ', response.error);
+              } else if (response.customButton) {
+                console.log('User tapped custom button: ', response.customButton);
+              } if (response.didCancel || response.error){
+                   showError('Oops, sepertinya anda belum memilih photo nya ?')
+                }else{
+                    const source = { uri: response.uri}
+                    setPhotoForDB (`data:${response.type};base64, ${response.data}`)
+                    setPhoto(source)
+                    setHasPhoto(true)
+                }
+        })
+    }
+
+    const UploadAndContinue = () => {
+        Fire.database()
+        .ref(`users/${uid}/`)
+        .update({photo: photoForDB})
+        const data = props.route.params
+        data.photo = photoForDB
+        storeData('user', data)
+        props.navigation.navigate('MainApp')
+    }
+
     return (
         <View style={styles.container}>
-            <Header />
+            <Header title='Upload Photo' type='dark' onPress={()=> props.navigation.goBack()}/>
             <View style={styles.content}>
                 <View style={styles.profile}>
-                    <View style={styles.imgWrapper}>
-                        <Image source={ILNullPhoto} style={styles.img} />
-                        <IcAddPhoto style={styles.addPhoto} />
-                    </View>
-                    <Text style={styles.name}>Lestari</Text>
-                    <Text style={styles.profession}>Traveller and Blogger</Text>
+                    <TouchableOpacity style={styles.imgWrapper} onPress={getImage}>
+                        <Image source={photo} style={styles.img} />
+                        {hasPhoto && <IcRemovePhoto style={styles.addPhoto} /> }
+                        {!hasPhoto && <IcAddPhoto style={styles.addPhoto} /> }
+                    </TouchableOpacity>
+                        <Text style={styles.name}>{fullName}</Text>
+                        <Text style={styles.profession}>{profession}</Text>
                 </View>
                 <View>
-                    <Button title='Upload and Continue' />
+                    <Button disable={!hasPhoto} title='Upload and Continue' onPress={UploadAndContinue} />
                     <Gap height={30} />
-                    <Link title='Skip for this' align='center' size={16} />
+                    <Link title='Skip for this' align='center' size={16}  onPress={() => props.navigation.replace('MainApp')}/>
                 </View>
             </View>
         </View>
@@ -56,7 +108,8 @@ const styles = StyleSheet.create({
     },
     img: {
         width: 110,
-        height: 110
+        height: 110,
+        borderRadius: 110/2
     },
     addPhoto: {
         position: 'absolute',

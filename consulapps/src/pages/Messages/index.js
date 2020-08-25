@@ -1,11 +1,11 @@
 import React, { useState } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
-import { ListDoctor } from '../../components'
+import { List } from '../../components'
 import { colors, fonts } from '../../utils'
 import LinearGradient from 'react-native-linear-gradient';
 import { DmyDoctor1, DmyDoctor2, DmyDoctor3 } from '../../assets';
 
-const Messages = () => {
+const Messages = (props) => {
 
     const[doctors, setDoctors] =  useState([
         {
@@ -30,11 +30,12 @@ const Messages = () => {
 
     const renderDoctors = () => {
         return doctors.map((val)=>{
-            return <ListDoctor
+            return <List
                 key={val.id}
                 profile={val.profile}
                 name={val.name}
                 desc={val.desc}
+                onPress={() => props.navigation.navigate('Chatting')}
             />
         })
     }

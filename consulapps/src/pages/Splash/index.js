@@ -3,14 +3,22 @@ import { StyleSheet, Text, View, Image } from 'react-native'
 import { colors, fonts } from '../../utils'
 import { ILLogo } from '../../assets'
 import { Gap } from '../../components'
+import { Fire } from '../../config'
 
 
 const Splash = (props) => {
 
     useEffect(()=>{
-        setTimeout(()=>{
-            props.navigation.replace('SliderImage')
-        }, 2000)
+            const unsubscribe =  Fire.auth().onAuthStateChanged((user)=>{
+                setTimeout(()=>{
+                    if(user){
+                        props.navigation.replace('MainApp')
+                    } else {
+                        props.navigation.replace('Login')
+                    }
+                }, 2000)
+            })
+            return () => unsubscribe()
     },[])
 
     return (

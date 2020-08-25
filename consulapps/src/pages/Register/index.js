@@ -1,11 +1,63 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Image, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { showMessage } from "react-native-flash-message"
 import LinearGradient from 'react-native-linear-gradient'
 import { ILRegister } from '../../assets'
-import { Button, Gap, Input } from '../../components'
-import { colors, fonts } from '../../utils'
+import { Button, Gap, Input, Loading } from '../../components'
+import { Fire } from '../../config'
+import { colors, fonts, useForm, storeData, showSuccess, showError } from '../../utils'
+import { useDispatch } from 'react-redux'
 
 const Register = (props) => {
+
+    //state loading
+    const dispatch = useDispatch()
+
+    //custom useState
+    const [form, setForm] = useForm({
+        fullName: '',
+        profession: '',
+        email: '',
+        password: ''
+    })
+
+    //fungsi Button click
+    const onContinue = () => {
+        if(form.fullName && form.profession && form.email && form.password){
+            dispatch({type: 'SET_LOADING', value: true})
+            //membuat user menggunakan email dan password
+            Fire.auth()
+                .createUserWithEmailAndPassword(form.email, form.password)
+                .then((res)=>{
+                    dispatch({type: 'SET_LOADING', value: false})
+                    showSuccess('Register Success')
+                    setForm('reset')
+                    const data = {
+                        fullName: form.fullName,
+                        profession: form.profession,
+                        email: form.email,
+                        uid: res.user.uid
+                    }
+                    Fire
+                    .database()
+                    .ref(`users/${res.user.uid}/`)
+                    .set(data)
+                    storeData('user', data)
+                    props.navigation.navigate('UploadPhoto', data)
+                })
+                .catch((error) => {
+                // Handle Errors here.
+                dispatch({type: 'SET_LOADING', value: false})
+                const errorMessage = error.message;
+                showError(errorMessage)
+                // ...
+              });
+
+        }else {
+            showError('Form Must Be Filled')
+        }
+    }
+
     return (
         <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
             <LinearGradient start={{x: 0, y: 0}} end={{x: 1, y: 0}} colors={['#1280fe', '#00d4ff']} style={styles.page}>
@@ -17,15 +69,32 @@ const Register = (props) => {
                 <Text style={styles.title}>Ayo,</Text>
                 <Text style={styles.title}>Mulai konsultasi</Text>
                 <Gap height={20} />
-                <Input label='Fullname'/>
+                <Input 
+                    label='Fullname' 
+                    value={form.fullName} 
+                    onChangeText={(value) => setForm('fullName', value)}
+                />
                 <Gap height={20} />
-                <Input label='Pekerjaan' />
+                <Input 
+                    label='Pekerjaan' 
+                    value={form.profession} 
+                    onChangeText={(value) => setForm('profession', value)} 
+                />
                 <Gap height={20} />
-                <Input label='Email' />
+                <Input 
+                    label='Email' 
+                    value={form.email} 
+                    onChangeText={(value) => setForm('email', value)} 
+                />
                 <Gap height={20} />
-                <Input label='Password' />
+                <Input 
+                    label='Password' 
+                    value={form.password} 
+                    onChangeText={(value) => setForm('password', value)} 
+                    secureTextEntry
+                />
                 <Gap height={50} />
-                <Button title='Sign Up' onPress={() => props.navigation.navigate('UploadPhoto')}/>
+                <Button title='Continue' onPress={onContinue}/>
                 <Gap height={50} />
             </View>
         </ScrollView>

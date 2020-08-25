@@ -1,27 +1,79 @@
-import React from 'react'
-import { StyleSheet, Text, View, ScrollView } from 'react-native'
-import { DoctorCategory, Gap, HomeProfile, NewsItem, RatedDoctor } from '../../components'
-import { colors, fonts } from '../../utils'
+import React, { useEffect, useState } from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import {JsonCategoryDoctor} from '../../assets'
+import { DmyDoctor1, DmyDoctor2, DmyDoctor3 } from '../../assets';
+import { DoctorCategory, Gap, HomeProfile, NewsItem, RatedDoctor } from '../../components';
+import { Fire } from '../../config';
+import { colors, fonts, getData, showError } from '../../utils';
 
 const Home = (props) => {
 
-    const renderCategory = () => {
-        return JsonCategoryDoctor.data.map((val)=>{
+    const [news, setNews] = useState([])
+    const [categoryDoctor, setCategoryDoctor] = useState([])
+
+    useEffect(()=>{
+        getDoctorCategory()
+        getNews()
+        getData('user')
+        .then((res)=>{
+            console.log(res)
+        })
+    },[])
+
+    const getDoctorCategory = () => {
+        Fire.database()
+        .ref(`category_doctor/`)
+        .once('value')
+        .then((res)=>{
+            if(res.val()){
+                setCategoryDoctor(res.val())
+            }
+        })
+        .catch((err)=>{
+            showError(err.message)
+        })
+    }
+    const getNews = () => {
+        Fire.database()
+        .ref(`news/`)
+        .once('value')
+        .then((res)=>{
+            if(res.val()){
+                setNews(res.val())
+            }
+        })
+        .catch((err)=>{
+            showError(err.message)
+        })
+    }
+
+    const renderDoctorCategory = () => {
+        return categoryDoctor.map((val)=>{
             return <DoctorCategory 
                 key={val.id}
                 category={val.category}
-                onPress={()=> props.navigation.navigate('ChooseDoctor')}
+                onPress={() => props.navigation.navigate('ChooseDoctor')}
             />
         })
     }
+
+    const renderNewsItem = () => {
+       return news.map((val)=>{
+           return <NewsItem 
+            key={val.id}
+            title={val.title}
+            date={val.date}
+            image={{uri: val.image}}
+           />
+       })
+    }
+
     return (
         <View style={styles.container}>
             <ScrollView showsVerticalScrollIndicator={false}>
             <LinearGradient colors={['#1280fe', '#00d4ff']} style={styles.wrapperProfile}>
                 <Gap height={30} />
-                <HomeProfile />
+                <HomeProfile onPress={() => props.navigation.navigate('UserProfile')} />
                 <Gap height={30}/>
             </LinearGradient>
                 <Gap height={15} />
@@ -31,7 +83,7 @@ const Home = (props) => {
                     <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                         <View style={styles.category}>
                             <Gap width={40} />
-                            {renderCategory()}
+                            {renderDoctorCategory()}
                             <Gap width={30} />
                         </View>
                     </ScrollView>
@@ -39,16 +91,13 @@ const Home = (props) => {
                 <Gap height={30} />
                 <Text style={styles.sectionLabel}>Top Rated Doctors</Text>
                 <View style={styles.wrapperSection}>
-                    <RatedDoctor />
-                    <RatedDoctor />
-                    <RatedDoctor />
+                    <RatedDoctor name='Sri Rahayu' desc='Spesialis Jantung' img={DmyDoctor2} onPress={() => props.navigation.navigate('DoctorProfile')} />
+                    <RatedDoctor name='Wulandari' desc='Spesialis Kandungan' img={DmyDoctor1} onPress={() => props.navigation.navigate('DoctorProfile')} />
+                    <RatedDoctor name='Sugeng' desc='Spesialis Syaraf' img={DmyDoctor3} onPress={() => props.navigation.navigate('DoctorProfile')} />
                     <Gap height={15} />
                 </View>
                 <Text style={styles.sectionLabel}>Good News</Text>
-                <NewsItem />
-                <NewsItem />
-                <NewsItem />
-                <NewsItem />
+                {renderNewsItem()}
             </ScrollView>
         </View>
     )

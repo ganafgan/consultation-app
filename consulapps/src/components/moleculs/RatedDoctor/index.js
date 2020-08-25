@@ -1,15 +1,15 @@
 import React from 'react'
-import { StyleSheet, Text, View, Image } from 'react-native'
-import { DmyDoctor1, IcStar } from '../../../assets'
-import { fonts, colors } from '../../../utils'
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { IcStar } from '../../../assets'
+import { colors, fonts } from '../../../utils'
 
-const RatedDoctor = () => {
+const RatedDoctor = ({onPress, name, desc, img}) => {
     return (
-        <View style={styles.container}>
-            <Image source={DmyDoctor1} style={styles.img} />
+        <TouchableOpacity style={styles.container} onPress={onPress}>
+            <Image source={img} style={styles.img} />
             <View style={styles.profile}>
-                <Text style={styles.name}>Wulandari</Text>
-                <Text style={styles.category}>Spesilis Kandungan</Text>
+                <Text style={styles.name}>{name}</Text>
+                <Text style={styles.category}>{desc}</Text>
             </View>
             <View style={styles.rate}>
                 <IcStar />
@@ -18,7 +18,7 @@ const RatedDoctor = () => {
                 <IcStar />
                 <IcStar />
             </View>
-        </View>
+        </TouchableOpacity>
     )
 }
 
@@ -28,12 +28,14 @@ const styles = StyleSheet.create({
     container: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        paddingBottom:15
+        paddingBottom:15,
+        alignItems: 'center'
     },
     img: {
         width: 50,
         height: 50,
-        borderRadius: 50/2
+        borderRadius: 50/2,
+        marginRight: 10
     },
     rate: {
         flexDirection: 'row'
