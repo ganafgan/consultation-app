@@ -11,6 +11,7 @@ import Chatting from './Chatting'
 import UserProfile from './UserProfile'
 import UpdateProfile from './UpdateProfile'
 import DoctorProfile from './DoctorProfile'
+import NewsDetail from './NewsDetail'
 
 export {
     Splash,
@@ -25,5 +26,6 @@ export {
     Chatting,
     UserProfile,
     UpdateProfile,
-    DoctorProfile
+    DoctorProfile,
+    NewsDetail
 }

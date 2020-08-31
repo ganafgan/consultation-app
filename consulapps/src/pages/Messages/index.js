@@ -1,42 +1,49 @@
-import React, { useState } from 'react'
-import { StyleSheet, Text, View } from 'react-native'
-import { List } from '../../components'
-import { colors, fonts } from '../../utils'
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { DmyDoctor1, DmyDoctor2, DmyDoctor3 } from '../../assets';
+import { List } from '../../components';
+import { Fire } from '../../config';
+import { colors, fonts, getData } from '../../utils';
 
-const Messages = (props) => {
+const Messages = ({navigation}) => {
 
-    const[doctors, setDoctors] =  useState([
-        {
-            id: 1,
-            profile: DmyDoctor1,
-            name: 'Wulandari',
-            desc: 'Baik bu, terima kasih banyak atas wakt....'
-        },
-        {
-            id: 2,
-            profile: DmyDoctor2,
-            name: 'Sugeng Rahayu',
-            desc: 'Baik bu, terima kasih banyak atas wakt....'
-        },
-        {
-            id: 3,
-            profile: DmyDoctor3,
-            name: 'Dewi Sabina',
-            desc: 'Baik bu, terima kasih banyak atas wakt....'
-        },
-    ])
+    const [user, setUser] = useState({})
+    const [historyChat, setHistoryChat] = useState([])
+    console.log(user)
+    console.log(historyChat)
 
-    const renderDoctors = () => {
-        return doctors.map((val)=>{
-            return <List
-                key={val.id}
-                profile={val.profile}
-                name={val.name}
-                desc={val.desc}
-                onPress={() => props.navigation.navigate('Chatting')}
-            />
+    useEffect(()=>{
+    getDataFromLocal()
+    const rootDB = Fire.database().ref()
+    const urlHistory = `messages/${user.uid}/`
+    const messagesDB = rootDB.child(urlHistory)
+    messagesDB.on('value', async snapshot => {
+            if(snapshot.val()){
+                const oldData = snapshot.val()
+                const data = []
+
+                    const promises = await Object.keys(oldData).map(async key=>{
+                    const urlUidDoctor = `doctors/${oldData[key].uidPartner}`
+                    const detailDcotor = await rootDB.child(urlUidDoctor).once('value')
+                    data.push({
+                        id: key,
+                        detailDcotor: detailDcotor.val(),
+                        ...oldData[key],
+                    })
+                })
+                await Promise.all(promises)
+                console.log(`isi promise`, promises)
+                console.log(`ini isi datanya`,data)
+                setHistoryChat(data)
+               
+            }
+        })
+    },[user.uid])
+
+    const getDataFromLocal = () => {
+        getData('user')
+        .then((res)=>{
+            setUser(res)
         })
     }
 
@@ -45,7 +52,23 @@ const Messages = (props) => {
             <LinearGradient colors={['#1280fe', '#00d4ff']} style={styles.wrapperProfile}>
                 <Text style={styles.title}>Messages</Text>
             </LinearGradient>
-            {renderDoctors()}
+           {
+               historyChat.map((chat)=>{
+                   const dataDoctor = {
+                       id: chat.detailDcotor.uid,
+                       data: chat.detailDcotor
+                   }
+                   return (
+                       <List
+                            key={chat.id}
+                            profile={{uri: chat.detailDcotor.photo}}
+                            name={chat.detailDcotor.fullName}
+                            desc={chat.lastContentChat}
+                            onPress={() => navigation.navigate('Chatting', dataDoctor)}
+                       />
+                   )
+               })
+           }
         </View>
     )
 }

@@ -6,7 +6,7 @@ import { Button, Gap, Header, Input, Profile } from '../../components'
 import { Fire } from '../../config'
 import { colors, getData, showError, storeData } from '../../utils'
 
-const UpdateProfile = (props) => {
+const UpdateProfile = ({navigation}) => {
 
     useEffect(()=>{
         getData('user')
@@ -39,11 +39,11 @@ const UpdateProfile = (props) => {
                 //update password
                 updatePassword()
                 updateProfileData()
-                props.navigation.replace('MainApp')
+                navigation.replace('MainApp')
             }
         } else {
             updateProfileData()
-            props.navigation.replace('MainApp')
+            navigation.replace('MainApp')
         }
     }
 
@@ -68,7 +68,7 @@ const UpdateProfile = (props) => {
         .then(()=>{
             storeData('user', data)
             .then(()=>{
-                props.navigation.replace('MainApp')
+                navigation.replace('MainApp')
             })
             .catch(()=>{
                 showError('Something Error')
@@ -120,7 +120,7 @@ const UpdateProfile = (props) => {
 
     return (
         <View style={styles.container}>
-            <Header title='Update Profile' type='dark' onPress={() => props.navigation.goBack()} />
+            <Header title='Update Profile' type='dark' onPress={() => navigation.goBack()} />
             <ScrollView showsVerticalScrollIndicator={false}>
                 <Profile isRemove photo={photo} onPress={getImage} />
                 <Gap height={30}/>

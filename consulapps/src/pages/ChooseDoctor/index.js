@@ -1,18 +1,61 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { StyleSheet, View } from 'react-native'
-import { DmyDoctor1, DmyDoctor2, DmyDoctor3 } from '../../assets'
 import { Header, List } from '../../components'
+import { Fire } from '../../config'
 import { colors } from '../../utils'
 
-const ChooseDoctor = (props) => {
+const ChooseDoctor = ({navigation, route}) => {
+
+    const itemCategory = route.params
+    const [listDoctors, setListDoctors] = useState([])
+
+    useEffect(()=>{
+        getDoctorBycategory(itemCategory.category)
+    },[itemCategory.category])
+
+    const getDoctorBycategory = (category) => {
+        Fire.database()
+        .ref(`doctors/`)
+        .orderByChild(`category`)
+        .equalTo(category)
+        .once('value')
+        .then((res)=>{
+            if(res.val()){
+                const oldData = res.val()
+                const data = []
+                Object.keys(oldData).map((key)=>{
+                data.push({
+                    id: key,
+                    data: oldData[key]
+                    })
+                })
+                setListDoctors(data)
+            }
+        })
+        .catch((err)=>{
+            showError(err.message)
+        })
+        
+    }
+
+    const renderListDoctors = () => {
+        return listDoctors.map((val)=>{
+            return <List 
+                key={val.id}
+                name={val.data.fullName}
+                desc={val.data.gender}
+                profile={{uri: val.data.photo}}
+                type='next'
+                onPress={() => navigation.navigate('DoctorProfile', val)}
+            />
+        })
+
+    }
+
     return (
         <View style={styles.container}>
-            <Header title='Pilih Dokter Anak' type='dark' onPress={()=> props.navigation.goBack()} />
-            <List profile={DmyDoctor1} name='Wulandari' desc='Wanita' type='next' onPress={() => props.navigation.navigate('Chatting')} />
-            <List profile={DmyDoctor2} name='Wulandari' desc='Wanita' type='next' />
-            <List profile={DmyDoctor3} name='Wulandari' desc='Wanita' type='next' />
-            <List profile={DmyDoctor2} name='Wulandari' desc='Wanita' type='next' />
-            <List profile={DmyDoctor1} name='Wulandari' desc='Wanita' type='next' />
+            <Header title={`Pilih ${itemCategory.category}`} type='dark' onPress={()=> navigation.goBack()} />
+             {renderListDoctors()}
         </View>
     )
 }

@@ -6,20 +6,20 @@ import { Gap } from '../../components'
 import { Fire } from '../../config'
 
 
-const Splash = (props) => {
+const Splash = ({navigation}) => {
 
     useEffect(()=>{
             const unsubscribe =  Fire.auth().onAuthStateChanged((user)=>{
                 setTimeout(()=>{
                     if(user){
-                        props.navigation.replace('MainApp')
+                        navigation.replace('MainApp')
                     } else {
-                        props.navigation.replace('Login')
+                        navigation.replace('Login')
                     }
                 }, 2000)
             })
             return () => unsubscribe()
-    },[])
+    },[navigation])
 
     return (
         <View style={styles.container}>

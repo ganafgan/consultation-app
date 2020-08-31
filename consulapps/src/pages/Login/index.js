@@ -7,7 +7,7 @@ import { Button, Gap, Input, Link } from '../../components'
 import { Fire } from '../../config'
 import { colors, fonts, showError, storeData, useForm } from '../../utils'
 
-const Login = (props) => {
+const Login = ({navigation}) => {
 
     const [form, setForm] = useForm({
         email: '',
@@ -28,7 +28,7 @@ const Login = (props) => {
                     console.log(res.val())
                     if(res.val()){
                         storeData('user', res.val())
-                        props.navigation.replace('MainApp')
+                        navigation.replace('MainApp')
                     }
                     
                 })
@@ -73,7 +73,7 @@ const Login = (props) => {
                         <Link title='Sign Up' 
                             size={14} under='blue' 
                             color='blue'
-                            onPress={()=> props.navigation.navigate('Register')}
+                            onPress={()=> navigation.navigate('Register')}
                         />
                     </View>
                 </View>

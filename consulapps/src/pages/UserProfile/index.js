@@ -1,32 +1,18 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { StyleSheet, View } from 'react-native'
-import { ILNullPhoto } from '../../assets'
 import { Gap, Header, List, Profile } from '../../components'
 import { Fire } from '../../config'
-import { colors, getData, showError } from '../../utils'
+import { colors, showError } from '../../utils'
 
-const UserProfile = (props) => {
+const UserProfile = ({navigation, route}) => {
 
-    useEffect(()=>{
-        getData('user')
-        .then((res)=>{
-            const data = res
-            data.photo = {uri: res.photo}
-            setProfile(data)
-        })
-    },[])
-
-    const [profile, setProfile] = useState({
-        fullName: '',
-        profession: '',
-        photo: ILNullPhoto
-    })
-
+    const profile = route.params
+   
     const onLogout = () => {
         Fire.auth()
         .signOut()
         .then(()=>{
-            props.navigation.replace('Login')
+            navigation.replace('Login')
         })
         .catch((err)=>{
             showError(err.message)
@@ -35,7 +21,7 @@ const UserProfile = (props) => {
     
     return (
         <View style={styles.container}>
-            <Header title='Profile' type='dark' onPress={() => props.navigation.goBack()} />
+            <Header title='Profile' type='dark' onPress={() => navigation.goBack()} />
             <Gap height={20} />
             {profile.fullName.length > 0 && (
                 <Profile 
@@ -49,7 +35,7 @@ const UserProfile = (props) => {
                 name='Edit Profile' 
                 desc='Last Update Yesterday' 
                 type='next' icon='edit-profile' 
-                onPress={() => props.navigation.navigate('UpdateProfile')}
+                onPress={() => navigation.navigate('UpdateProfile')}
              />
             <List 
                 name='Edit Profile' 

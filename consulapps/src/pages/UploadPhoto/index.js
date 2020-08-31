@@ -6,15 +6,14 @@ import { Button, Gap, Header, Link } from '../../components'
 import { Fire } from '../../config'
 import { colors, fonts, showError, storeData } from '../../utils'
 
-const UploadPhoto = (props) => {
+const UploadPhoto = ({navigation, route}) => {
 
-    const {fullName, profession, uid} = props.route.params
+    const {fullName, profession, uid} = route.params
     const [hasPhoto, setHasPhoto] = useState(false)
     const [photo, setPhoto] = useState(ILNullPhoto)
     const [photoForDB, setPhotoForDB] = useState('')
 
     const getImage = () => {
-
         const options = {
             title: 'Select Avatar',
             quality: 0.5,
@@ -50,15 +49,15 @@ const UploadPhoto = (props) => {
         Fire.database()
         .ref(`users/${uid}/`)
         .update({photo: photoForDB})
-        const data = props.route.params
+        const data = route.params
         data.photo = photoForDB
         storeData('user', data)
-        props.navigation.navigate('MainApp')
+        navigation.replace('MainApp')
     }
 
     return (
         <View style={styles.container}>
-            <Header title='Upload Photo' type='dark' onPress={()=> props.navigation.goBack()}/>
+            <Header title='Upload Photo' type='dark' onPress={()=> navigation.goBack()}/>
             <View style={styles.content}>
                 <View style={styles.profile}>
                     <TouchableOpacity style={styles.imgWrapper} onPress={getImage}>

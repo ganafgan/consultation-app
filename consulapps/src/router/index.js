@@ -1,5 +1,5 @@
 import React from 'react';
-import { Login, Register, SliderImage, Splash, UploadPhoto, Home, Messages, Hospitals, ChooseDoctor, Chatting, UserProfile, UpdateProfile, DoctorProfile } from '../pages';
+import { Login, Register, SliderImage, Splash, UploadPhoto, Home, Messages, Hospitals, ChooseDoctor, Chatting, UserProfile, UpdateProfile, DoctorProfile, NewsDetail } from '../pages';
 import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { BottomNavigator } from '../components';
@@ -32,6 +32,7 @@ const Router = () => {
             <Stack.Screen name='UserProfile' component={UserProfile} options={{headerShown: false}} />
             <Stack.Screen name='UpdateProfile' component={UpdateProfile} options={{headerShown: false}} />
             <Stack.Screen name='DoctorProfile' component={DoctorProfile} options={{headerShown: false}} />
+            <Stack.Screen name='NewsDetail' component={NewsDetail} options={{headerShown: false}} />
         </Stack.Navigator>
     )
 }

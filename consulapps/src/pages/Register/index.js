@@ -8,7 +8,7 @@ import { Fire } from '../../config'
 import { colors, fonts, useForm, storeData, showSuccess, showError } from '../../utils'
 import { useDispatch } from 'react-redux'
 
-const Register = (props) => {
+const Register = ({navigation}) => {
 
     //state loading
     const dispatch = useDispatch()
@@ -38,18 +38,16 @@ const Register = (props) => {
                         email: form.email,
                         uid: res.user.uid
                     }
-                    Fire
-                    .database()
+                    Fire.database()
                     .ref(`users/${res.user.uid}/`)
                     .set(data)
                     storeData('user', data)
-                    props.navigation.navigate('UploadPhoto', data)
+                    navigation.navigate('UploadPhoto', data)
                 })
-                .catch((error) => {
+                .catch((err) => {
                 // Handle Errors here.
                 dispatch({type: 'SET_LOADING', value: false})
-                const errorMessage = error.message;
-                showError(errorMessage)
+                showError(err.message)
                 // ...
               });
 

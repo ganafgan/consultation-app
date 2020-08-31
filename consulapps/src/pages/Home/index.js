@@ -1,24 +1,69 @@
 import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
-import { DmyDoctor1, DmyDoctor2, DmyDoctor3 } from '../../assets';
-import { DoctorCategory, Gap, HomeProfile, NewsItem, RatedDoctor } from '../../components';
+import { ILNullPhoto } from '../../assets';
+import { DoctorCategory, Gap, HomeProfile, NewsItem, RatedDoctor, Loading } from '../../components';
 import { Fire } from '../../config';
 import { colors, fonts, getData, showError } from '../../utils';
+import { useDispatch } from 'react-redux';
+import Axios from 'axios'
+import moment from 'moment';
 
-const Home = (props) => {
+const Home = ({navigation}) => {
+    //state loading
+    const dispatch = useDispatch()
 
+    //kumpulan hooks
     const [news, setNews] = useState([])
     const [categoryDoctor, setCategoryDoctor] = useState([])
-
+    const [doctors, setDoctors] = useState([])
+    const [profile, setProfile] = useState({
+        photo: ILNullPhoto,
+        fullName: '',
+        profession: ''
+    })
+   
     useEffect(()=>{
         getDoctorCategory()
+        getTopRatedDoctors()
         getNews()
+        navigation.addListener('focus', ()=>{
+            getUserData()
+        })
+    },[navigation])
+
+    const getUserData = () => {
         getData('user')
         .then((res)=>{
-            console.log(res)
+            const data = res
+            data.photo = res?.photo?.length > 1 ? {uri: res.photo} : ILNullPhoto
+            setProfile(res)
         })
-    },[])
+    }
+
+    const getTopRatedDoctors = () => {
+        Fire.database()
+        .ref(`doctors/`)
+        .orderByChild('rate')
+        .limitToLast(3)
+        .once('value')
+        .then((res)=>{
+            if(res.val()){
+                const oldData = res.val()
+                const data = []
+                Object.keys(oldData).map((key)=>{
+                data.push({
+                    id: key,
+                    data: oldData[key]
+                    })
+                })
+                setDoctors(data)
+            }
+        })
+        .catch((err)=>{
+            showError(err.message)
+        })
+    }
 
     const getDoctorCategory = () => {
         Fire.database()
@@ -26,7 +71,9 @@ const Home = (props) => {
         .once('value')
         .then((res)=>{
             if(res.val()){
-                setCategoryDoctor(res.val())
+                const data = res.val()
+                const filterData = data.filter((el)=>(el !== null))
+                setCategoryDoctor(filterData)
             }
         })
         .catch((err)=>{
@@ -34,17 +81,15 @@ const Home = (props) => {
         })
     }
     const getNews = () => {
-        Fire.database()
-        .ref(`news/`)
-        .once('value')
-        .then((res)=>{
-            if(res.val()){
-                setNews(res.val())
-            }
-        })
-        .catch((err)=>{
-            showError(err.message)
-        })
+        const key = `ae88de4fa148465f8f3d91c0ad3a77bd`
+       Axios.get(`https://newsapi.org/v2/top-headlines?country=id&category=health&apiKey=${key}`)
+       .then((res)=>{
+           console.log('isi berita',res)
+           setNews(res.data.articles)
+       })
+       .catch((err)=>{
+           showError(err.message)
+       })
     }
 
     const renderDoctorCategory = () => {
@@ -52,28 +97,48 @@ const Home = (props) => {
             return <DoctorCategory 
                 key={val.id}
                 category={val.category}
-                onPress={() => props.navigation.navigate('ChooseDoctor')}
+                onPress={() => navigation.navigate('ChooseDoctor', val)}
+            />
+        })
+    }
+
+    const renderTopRatedDoctors = () => {
+        return doctors.map((val)=>{
+            return <RatedDoctor 
+                key={val.id}
+                name={val.data.fullName}
+                desc={val.data.profession}
+                img={{uri: val.data.photo}}
+                onPress={()=> navigation.navigate('DoctorProfile', val)}
             />
         })
     }
 
     const renderNewsItem = () => {
-       return news.map((val)=>{
-           return <NewsItem 
-            key={val.id}
-            title={val.title}
-            date={val.date}
-            image={{uri: val.image}}
-           />
-       })
+        let dataFiltered = news.slice(14,19)
+        return dataFiltered.map((val, index)=>{
+          return <NewsItem 
+            key={index}
+            image={{uri: val.urlToImage}}
+            title={val.title.length > 70 ? val.title.slice(0,50) + `...` : val.title }
+            date={moment().startOf('day').fromNow(val.publishedAtmomen)}
+            onPress={() => navigation.navigate('NewsDetail', val)}
+          />
+      })
     }
 
+    if(news === []){
+        return <Loading />
+    }
     return (
         <View style={styles.container}>
             <ScrollView showsVerticalScrollIndicator={false}>
             <LinearGradient colors={['#1280fe', '#00d4ff']} style={styles.wrapperProfile}>
                 <Gap height={30} />
-                <HomeProfile onPress={() => props.navigation.navigate('UserProfile')} />
+                <HomeProfile 
+                    profile={profile}
+                    onPress={() => navigation.navigate('UserProfile', profile)} 
+                />
                 <Gap height={30}/>
             </LinearGradient>
                 <Gap height={15} />
@@ -91,9 +156,7 @@ const Home = (props) => {
                 <Gap height={30} />
                 <Text style={styles.sectionLabel}>Top Rated Doctors</Text>
                 <View style={styles.wrapperSection}>
-                    <RatedDoctor name='Sri Rahayu' desc='Spesialis Jantung' img={DmyDoctor2} onPress={() => props.navigation.navigate('DoctorProfile')} />
-                    <RatedDoctor name='Wulandari' desc='Spesialis Kandungan' img={DmyDoctor1} onPress={() => props.navigation.navigate('DoctorProfile')} />
-                    <RatedDoctor name='Sugeng' desc='Spesialis Syaraf' img={DmyDoctor3} onPress={() => props.navigation.navigate('DoctorProfile')} />
+                    {renderTopRatedDoctors()}
                     <Gap height={15} />
                 </View>
                 <Text style={styles.sectionLabel}>Good News</Text>
